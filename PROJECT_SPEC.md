@@ -159,11 +159,12 @@ Các con số timing không khóa trước, phải tune trên thiết bị thậ
 
 ## 13. Technology Decision hiện tại
 
-- Engine: **Unity 6.3 LTS**.
+- Engine: **Unity 6.5 (6000.5.10f1), Apple Silicon**.
 - Rendering: **URP 2D Renderer**.
 - Language: C#.
-- Target: iOS + Android.
+- Target: iOS + Android; Web build support cài sẵn để test/demo khi cần.
 - Orientation: portrait.
+- Unity project folder trong repo: `Brinkshift/`.
 - Prototype: zero third-party SDK.
 
 Không dùng DOTS/ECS/Addressables/DI framework hoặc architecture phức tạp nếu prototype chưa cần.
@@ -234,6 +235,6 @@ Các rủi ro này phải được kiểm chứng trước khi đầu tư produc
 
 ## 19. Current Status
 
-**Status: READY FOR MICRO PROTOTYPE PREPARATION**
+**Status: UNITY PROJECT CREATED — BASELINE CONFIGURATION NEXT**
 
-Bước kế tiếp: chuẩn bị Unity environment và giao AI coding tạo baseline project + Gate 0 touch-control prototype.
+Bước kế tiếp: kiểm tra Console sạch, cấu hình mobile portrait, lưu baseline scene, commit project sạch vào GitHub, sau đó mới triển khai Gate 0 touch-control prototype.
