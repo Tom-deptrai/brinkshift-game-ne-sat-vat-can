@@ -1,5 +1,5 @@
-# Unity project is stored under /Brinkshift inside this repository.
-# Ignore Unity-generated caches/build artifacts at both repo root and nested project level.
+# Brinkshift repository layout
+# Repo root = full project workspace; Unity project lives in /Game.
 
 .utmp/
 [Ll]ibrary/
@@ -13,15 +13,15 @@
 [Rr]ecordings/
 
 # Explicit nested Unity project paths
-/Brinkshift/[Ll]ibrary/
-/Brinkshift/[Tt]emp/
-/Brinkshift/[Oo]bj/
-/Brinkshift/[Bb]uild/
-/Brinkshift/[Bb]uilds/
-/Brinkshift/[Ll]ogs/
-/Brinkshift/[Uu]ser[Ss]ettings/
-/Brinkshift/[Mm]emoryCaptures/
-/Brinkshift/[Rr]ecordings/
+/Game/[Ll]ibrary/
+/Game/[Tt]emp/
+/Game/[Oo]bj/
+/Game/[Bb]uild/
+/Game/[Bb]uilds/
+/Game/[Ll]ogs/
+/Game/[Uu]ser[Ss]ettings/
+/Game/[Mm]emoryCaptures/
+/Game/[Rr]ecordings/
 
 *.log
 *.blend1
