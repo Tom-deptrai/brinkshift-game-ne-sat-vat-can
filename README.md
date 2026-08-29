@@ -3,6 +3,7 @@
 **Brinkshift** là dự án game mobile thương mại cho iOS và Android.
 
 Repo: `brinkshift-game-ne-sat-vat-can`
+Unity project folder: `Brinkshift/`
 
 ## Ý tưởng cốt lõi hiện tại
 
@@ -29,10 +30,10 @@ Mục tiêu chưa phải làm game hoàn chỉnh. Mục tiêu là chứng minh:
 
 ## Công nghệ hiện tại
 
-- Engine: Unity 6.3 LTS
+- Engine: Unity 6.5 (6000.5.10f1), Apple Silicon
 - Rendering: Unity 2D / URP 2D Renderer
 - Orientation: Portrait
-- Platforms: iOS + Android
+- Platforms: iOS + Android + Web build support
 - Prototype: không third-party SDK
 
 ## Không làm trong prototype đầu tiên
