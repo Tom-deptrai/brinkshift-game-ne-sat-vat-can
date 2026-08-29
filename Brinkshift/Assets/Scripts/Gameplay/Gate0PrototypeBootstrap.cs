@@ -26,10 +26,21 @@ namespace Brinkshift.Gameplay
         [SerializeField, Min(0f)] private float obstacleLaneOffsetX = 1.4f;
         [SerializeField, Min(0f)] private float obstacleWrapMargin = 1.5f;
 
+        [Header("Graze tuning")]
+        [Tooltip("Graze zone size as a multiple of the obstacle body. Keep it below " +
+                 "2 * obstacleLaneOffsetX / obstacleSize so the two lanes' graze zones " +
+                 "leave a safe gap in the centre.")]
+        [SerializeField, Min(1.05f)] private float grazeZoneScale = 1.7f;
+        [SerializeField] private Color grazeFlashColor = new Color(0.5f, 1f, 1f, 1f);
+        [SerializeField, Min(0.02f)] private float grazeFlashDuration = 0.12f;
+
         [Header("References")]
         [SerializeField] private Camera targetCamera;
 
         private bool _dead;
+
+        /// <summary>True once the player has died this run (until the scene reloads).</summary>
+        public bool IsDead => _dead;
 
         private void Awake()
         {
@@ -153,6 +164,20 @@ namespace Brinkshift.Gameplay
 
             var drifter = go.AddComponent<ObstacleDrifter>();
             drifter.Configure(obstacleSpeed, obstacleLaneOffsetX, obstacleWrapMargin, targetCamera);
+
+            // Gate 1: a larger graze zone as a child, so its size is independent
+            // of the obstacle body. Brushing it (without touching the body) grazes.
+            var grazeGo = new GameObject("GrazeZone");
+            grazeGo.transform.SetParent(go.transform, false);
+            grazeGo.transform.localScale = new Vector3(grazeZoneScale, grazeZoneScale, 1f);
+
+            var grazeBox = grazeGo.AddComponent<BoxCollider2D>();
+            grazeBox.isTrigger = true;
+
+            var grazeZone = grazeGo.AddComponent<ObstacleGrazeZone>();
+            grazeZone.Configure(box, sprite, grazeFlashColor, grazeFlashDuration);
+
+            drifter.SetGrazeZone(grazeZone);
         }
     }
 }

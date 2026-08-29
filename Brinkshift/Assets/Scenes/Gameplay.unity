@@ -514,6 +514,9 @@ MonoBehaviour:
   obstacleSpeed: 5
   obstacleLaneOffsetX: 1.4
   obstacleWrapMargin: 1.5
+  grazeZoneScale: 1.7
+  grazeFlashColor: {r: 0.5, g: 1, b: 1, a: 1}
+  grazeFlashDuration: 0.12
   targetCamera: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

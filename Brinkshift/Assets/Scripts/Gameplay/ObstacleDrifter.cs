@@ -21,6 +21,7 @@ namespace Brinkshift.Gameplay
 
         private float _halfHeightWorld = 0.5f;
         private int _laneSign = 1;
+        private ObstacleGrazeZone _grazeZone;
 
         /// <summary>Called by the bootstrap right after it adds this component.</summary>
         public void Configure(float speed, float laneOffsetX, float wrapMargin, Camera view)
@@ -37,6 +38,12 @@ namespace Brinkshift.Gameplay
             }
 
             ResetToTop();
+        }
+
+        /// <summary>Links the graze zone so its one-per-pass state resets on wrap.</summary>
+        public void SetGrazeZone(ObstacleGrazeZone grazeZone)
+        {
+            _grazeZone = grazeZone;
         }
 
         private void Update()
@@ -66,6 +73,12 @@ namespace Brinkshift.Gameplay
             float topEdge = _camera.transform.position.y + _camera.orthographicSize;
             float x = _camera.transform.position.x + _laneSign * _laneOffsetX;
             transform.position = new Vector3(x, topEdge + _halfHeightWorld + _wrapMargin, 0f);
+
+            // New pass down the screen -> the player may graze this obstacle again.
+            if (_grazeZone != null)
+            {
+                _grazeZone.ResetPass();
+            }
         }
 
         private void OnTriggerEnter2D(Collider2D other)
