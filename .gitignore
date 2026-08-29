@@ -29,6 +29,7 @@
 
 # IDE/editor caches
 .vs/
+.vscode/
 .gradle/
 ExportedObj/
 .consulo/
