@@ -2,6 +2,7 @@
 # Repo root = full project workspace; Unity project lives in /Brinkshift.
 
 .utmp/
+AI_HANDOFF/
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
