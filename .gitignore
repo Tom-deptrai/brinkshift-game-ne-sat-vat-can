@@ -27,6 +27,10 @@
 *.blend1
 *.blend1.meta
 
+# OS junk
+.DS_Store
+**/.DS_Store
+
 # IDE/editor caches
 .vs/
 .vscode/
