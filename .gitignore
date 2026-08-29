@@ -1,5 +1,5 @@
 # Brinkshift repository layout
-# Repo root = full project workspace; Unity project lives in /Game.
+# Repo root = full project workspace; Unity project lives in /BrinkshiftGame.
 
 .utmp/
 [Ll]ibrary/
@@ -13,15 +13,15 @@
 [Rr]ecordings/
 
 # Explicit nested Unity project paths
-/Game/[Ll]ibrary/
-/Game/[Tt]emp/
-/Game/[Oo]bj/
-/Game/[Bb]uild/
-/Game/[Bb]uilds/
-/Game/[Ll]ogs/
-/Game/[Uu]ser[Ss]ettings/
-/Game/[Mm]emoryCaptures/
-/Game/[Rr]ecordings/
+/BrinkshiftGame/[Ll]ibrary/
+/BrinkshiftGame/[Tt]emp/
+/BrinkshiftGame/[Oo]bj/
+/BrinkshiftGame/[Bb]uild/
+/BrinkshiftGame/[Bb]uilds/
+/BrinkshiftGame/[Ll]ogs/
+/BrinkshiftGame/[Uu]ser[Ss]ettings/
+/BrinkshiftGame/[Mm]emoryCaptures/
+/BrinkshiftGame/[Rr]ecordings/
 
 *.log
 *.blend1
