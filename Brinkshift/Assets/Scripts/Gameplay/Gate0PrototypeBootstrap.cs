@@ -23,14 +23,15 @@ namespace Brinkshift.Gameplay
         [SerializeField] private Color obstacleColor = new Color(0.92f, 0.26f, 0.21f, 1f);
         [SerializeField] private Vector2 obstacleSize = new Vector2(1.3f, 1.3f);
         [SerializeField, Min(0.1f)] private float obstacleSpeed = 5f;
-        [SerializeField, Min(0f)] private float obstacleLaneOffsetX = 1.4f;
+        [Tooltip("How far each lane sits from centre. Wide enough that a centred " +
+                 "player clears both lanes' graze zones (see the geometry log on play).")]
+        [SerializeField, Min(0f)] private float obstacleLaneOffsetX = 1.9f;
         [SerializeField, Min(0f)] private float obstacleWrapMargin = 1.5f;
 
         [Header("Graze tuning")]
-        [Tooltip("Graze zone size as a multiple of the obstacle body. Keep it below " +
-                 "2 * obstacleLaneOffsetX / obstacleSize so the two lanes' graze zones " +
-                 "leave a safe gap in the centre.")]
-        [SerializeField, Min(1.05f)] private float grazeZoneScale = 1.7f;
+        [Tooltip("World units the graze zone extends past each edge of the red hit " +
+                 "body. Bigger = easier to graze but the safe centre gap shrinks.")]
+        [SerializeField, Min(0.05f)] private float grazeMargin = 0.45f;
         [SerializeField] private Color grazeFlashColor = new Color(0.5f, 1f, 1f, 1f);
         [SerializeField, Min(0.02f)] private float grazeFlashDuration = 0.12f;
 
@@ -167,17 +168,44 @@ namespace Brinkshift.Gameplay
 
             // Gate 1: a larger graze zone as a child, so its size is independent
             // of the obstacle body. Brushing it (without touching the body) grazes.
+            // Local scale 1 so the collider size maps straight to world units via
+            // the parent scale (obstacleSize); the graze zone is the hit body plus
+            // grazeMargin on every edge.
             var grazeGo = new GameObject("GrazeZone");
             grazeGo.transform.SetParent(go.transform, false);
-            grazeGo.transform.localScale = new Vector3(grazeZoneScale, grazeZoneScale, 1f);
+            grazeGo.transform.localScale = Vector3.one;
 
             var grazeBox = grazeGo.AddComponent<BoxCollider2D>();
             grazeBox.isTrigger = true;
+            grazeBox.size = new Vector2(
+                (obstacleSize.x + 2f * grazeMargin) / obstacleSize.x,
+                (obstacleSize.y + 2f * grazeMargin) / obstacleSize.y);
 
             var grazeZone = grazeGo.AddComponent<ObstacleGrazeZone>();
             grazeZone.Configure(box, sprite, grazeFlashColor, grazeFlashDuration);
 
             drifter.SetGrazeZone(grazeZone);
+
+            LogGeometry();
+        }
+
+        /// <summary>
+        /// One editor/debug line describing whether a centred player clears both
+        /// lanes' graze zones - makes the tuning verifiable without a device.
+        /// </summary>
+        private void LogGeometry()
+        {
+            PlayerRelativeDragController player = FindAnyObjectByType<PlayerRelativeDragController>();
+            SpriteRenderer playerSprite = player != null ? player.GetComponent<SpriteRenderer>() : null;
+            float playerHalf = playerSprite != null ? playerSprite.bounds.extents.x : 0.5f;
+
+            float bodyHalf = obstacleSize.x * 0.5f;
+            float grazeHalf = bodyHalf + grazeMargin;
+            float safeGap = obstacleLaneOffsetX - grazeHalf - playerHalf; // > 0 => centred player never grazes
+
+            Debug.Log($"[Gate1] Geometry: lane +/-{obstacleLaneOffsetX:0.##}, hit half {bodyHalf:0.##}, " +
+                      $"graze half {grazeHalf:0.##}, player half {playerHalf:0.##}. " +
+                      $"Centre safe gap = {safeGap:0.##} ({(safeGap > 0f ? "OK - centre never grazes" : "TOO TIGHT - centre grazes")}).");
         }
     }
 }

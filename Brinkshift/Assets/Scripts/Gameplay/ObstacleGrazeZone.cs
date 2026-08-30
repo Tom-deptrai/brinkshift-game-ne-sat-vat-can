@@ -5,9 +5,13 @@ namespace Brinkshift.Gameplay
     /// <summary>
     /// Gate 1 (Graze) - smallest useful slice.
     ///
-    /// A larger trigger zone around the obstacle's lethal body. Brushing this
-    /// zone while alive and while NOT touching the hit zone counts as one graze.
-    /// The hit zone itself stays lethal and is handled by <see cref="ObstacleDrifter"/>.
+    /// A larger zone around the obstacle's lethal body. While alive, overlapping
+    /// this zone WITHOUT overlapping the hit zone counts as one graze. The hit
+    /// zone stays lethal and is handled by <see cref="ObstacleDrifter"/>.
+    ///
+    /// Detection is a per-frame overlap poll (Collider2D.Distance), not a trigger
+    /// callback - the obstacle moves by transform, and trigger enter/exit against
+    /// a moving collider is not dependable enough for "exactly one per pass".
     ///
     /// Anti-farming: at most one graze per obstacle pass; eligibility resets when
     /// the obstacle wraps back to the top (<see cref="ResetPass"/>).
@@ -19,7 +23,9 @@ namespace Brinkshift.Gameplay
     [RequireComponent(typeof(Collider2D))]
     public class ObstacleGrazeZone : MonoBehaviour
     {
+        private Collider2D _grazeZone;
         private Collider2D _hitZone;
+        private Collider2D _playerCollider;
         private SpriteRenderer _obstacleBody;
         private Color _bodyColor = Color.white;
         private Color _flashColor = new Color(0.5f, 1f, 1f, 1f);
@@ -36,6 +42,7 @@ namespace Brinkshift.Gameplay
 
         public void Configure(Collider2D hitZone, SpriteRenderer obstacleBody, Color flashColor, float flashDuration)
         {
+            _grazeZone = GetComponent<Collider2D>();
             _hitZone = hitZone;
             _obstacleBody = obstacleBody;
             if (_obstacleBody != null)
@@ -55,7 +62,44 @@ namespace Brinkshift.Gameplay
 
         private void Update()
         {
-            // Revert the flash on unscaled time so it still ends if the game froze.
+            RevertFlashWhenDue();
+
+            if (_grazedThisPass || _grazeZone == null)
+            {
+                return;
+            }
+
+            if (_playerCollider == null)
+            {
+                GameObject player = GameObject.FindWithTag("Player");
+                _playerCollider = player != null ? player.GetComponent<Collider2D>() : null;
+                if (_playerCollider == null)
+                {
+                    return;
+                }
+            }
+
+            Gate0PrototypeBootstrap runner = Gate0PrototypeBootstrap.Instance;
+            if (runner != null && runner.IsDead)
+            {
+                return;
+            }
+
+            bool inGraze = _grazeZone.Distance(_playerCollider).isOverlapped;
+            bool inHit = _hitZone != null && _hitZone.Distance(_playerCollider).isOverlapped;
+
+            // A graze only counts if the player brushed the zone but NOT the body.
+            if (inGraze && !inHit)
+            {
+                _grazedThisPass = true;
+                GrazeCount++;
+                Flash();
+                Debug.Log($"[Gate1] Graze registered (run total {GrazeCount}); one per obstacle pass.");
+            }
+        }
+
+        private void RevertFlashWhenDue()
+        {
             if (_flashUntil > 0f && Time.unscaledTime >= _flashUntil)
             {
                 if (_obstacleBody != null)
@@ -65,32 +109,6 @@ namespace Brinkshift.Gameplay
 
                 _flashUntil = -1f;
             }
-        }
-
-        private void OnTriggerEnter2D(Collider2D other)
-        {
-            if (_grazedThisPass || !other.CompareTag("Player"))
-            {
-                return;
-            }
-
-            Gate0PrototypeBootstrap runner = Gate0PrototypeBootstrap.Instance;
-            if (runner != null && runner.IsDead)
-            {
-                return;
-            }
-
-            // Only a graze if the player is NOT also inside the lethal hit zone;
-            // that overlap is a death, handled by ObstacleDrifter.
-            if (_hitZone != null && _hitZone.Distance(other).isOverlapped)
-            {
-                return;
-            }
-
-            _grazedThisPass = true;
-            GrazeCount++;
-            Flash();
-            Debug.Log($"[Gate1] Graze registered (run total {GrazeCount}); one per obstacle pass.");
         }
 
         private void Flash()

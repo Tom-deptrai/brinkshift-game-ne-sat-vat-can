@@ -512,9 +512,9 @@ MonoBehaviour:
   obstacleColor: {r: 0.92, g: 0.26, b: 0.21, a: 1}
   obstacleSize: {x: 1.3, y: 1.3}
   obstacleSpeed: 5
-  obstacleLaneOffsetX: 1.4
+  obstacleLaneOffsetX: 1.9
   obstacleWrapMargin: 1.5
-  grazeZoneScale: 1.7
+  grazeMargin: 0.45
   grazeFlashColor: {r: 0.5, g: 1, b: 1, a: 1}
   grazeFlashDuration: 0.12
   targetCamera: {fileID: 0}
