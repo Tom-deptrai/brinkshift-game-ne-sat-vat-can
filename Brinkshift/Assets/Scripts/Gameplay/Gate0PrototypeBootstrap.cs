@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Brinkshift.Gameplay
 {
@@ -109,6 +112,12 @@ namespace Brinkshift.Gameplay
 
         private void Update()
         {
+            if (QuitPressed())
+            {
+                RequestQuit();
+                return;
+            }
+
             if (!_dead)
             {
                 return;
@@ -131,11 +140,30 @@ namespace Brinkshift.Gameplay
             return Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame;
         }
 
+        private static bool QuitPressed()
+        {
+            return Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
+        }
+
+        private static void RequestQuit()
+        {
+#if UNITY_EDITOR
+            EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
+
         // Prototype-only debug readout (IMGUI, not production UI). Remove when a
         // real HUD exists.
         private void OnGUI()
         {
             GUI.Label(new Rect(12f, 10f, 400f, 24f), $"Graze score: {Score}");
+            if (GUI.Button(new Rect(12f, 58f, 90f, 30f), "Quit"))
+            {
+                RequestQuit();
+            }
+
             if (_dead)
             {
                 GUI.Label(new Rect(12f, 32f, 400f, 24f), "Dead - tap / click / key to restart");
