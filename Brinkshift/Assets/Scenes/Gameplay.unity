@@ -517,6 +517,8 @@ MonoBehaviour:
   grazeMargin: 0.45
   grazeFlashColor: {r: 0.5, g: 1, b: 1, a: 1}
   grazeFlashDuration: 0.12
+  grazePointsMax: 10
+  grazePointsMin: 1
   targetCamera: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

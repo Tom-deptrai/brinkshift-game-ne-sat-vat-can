@@ -30,6 +30,9 @@ namespace Brinkshift.Gameplay
         private Color _bodyColor = Color.white;
         private Color _flashColor = new Color(0.5f, 1f, 1f, 1f);
         private float _flashDuration = 0.12f;
+        private float _grazeMargin = 0.45f;
+        private int _grazePointsMin = 1;
+        private int _grazePointsMax = 10;
 
         private bool _grazedThisPass;
         private float _flashUntil = -1f;
@@ -40,7 +43,8 @@ namespace Brinkshift.Gameplay
         /// <summary>True while the current pass has already been grazed.</summary>
         public bool GrazedThisPass => _grazedThisPass;
 
-        public void Configure(Collider2D hitZone, SpriteRenderer obstacleBody, Color flashColor, float flashDuration)
+        public void Configure(Collider2D hitZone, SpriteRenderer obstacleBody, Color flashColor,
+            float flashDuration, float grazeMargin, int grazePointsMin, int grazePointsMax)
         {
             _grazeZone = GetComponent<Collider2D>();
             _hitZone = hitZone;
@@ -52,6 +56,9 @@ namespace Brinkshift.Gameplay
 
             _flashColor = flashColor;
             _flashDuration = Mathf.Max(0.02f, flashDuration);
+            _grazeMargin = Mathf.Max(0.01f, grazeMargin);
+            _grazePointsMin = Mathf.Max(1, grazePointsMin);
+            _grazePointsMax = Mathf.Max(_grazePointsMin, grazePointsMax);
         }
 
         /// <summary>Called by <see cref="ObstacleDrifter"/> when the obstacle wraps to the top.</summary>
@@ -89,13 +96,52 @@ namespace Brinkshift.Gameplay
             bool inHit = _hitZone != null && _hitZone.Distance(_playerCollider).isOverlapped;
 
             // A graze only counts if the player brushed the zone but NOT the body.
-            if (inGraze && !inHit)
+            if (!inGraze || inHit)
             {
-                _grazedThisPass = true;
-                GrazeCount++;
-                Flash();
-                Debug.Log($"[Gate1] Graze registered (run total {GrazeCount}); one per obstacle pass.");
+                return;
             }
+
+            // Proximity points from the HORIZONTAL edge gap between the player and
+            // the red body (the sideways dodge distance). Vertical offset is
+            // ignored - the obstacle only moves straight down, so this gap is
+            // constant for the pass. gap ~0 (right beside the body) -> max,
+            // gap grazeMargin (loose outer edge) -> min. Deterministic, linear.
+            //
+            // A player whose horizontal span still overlaps the body's column
+            // (edgeGap <= 0) has not dodged sideways at all - they are only clear
+            // by vertical timing and the descending body will hit them. That is
+            // an imminent head-on, not a graze, so it scores nothing; the hit
+            // then kills with no graze awarded.
+            float gap = _grazeMargin;
+            if (_hitZone != null)
+            {
+                float centreGap = Mathf.Abs(_playerCollider.bounds.center.x - _hitZone.bounds.center.x);
+                float edgeGap = centreGap - _hitZone.bounds.extents.x - _playerCollider.bounds.extents.x;
+                if (edgeGap <= 0f)
+                {
+                    return;
+                }
+
+                gap = Mathf.Clamp(edgeGap, 0f, _grazeMargin);
+            }
+
+            _grazedThisPass = true;
+            GrazeCount++;
+            Flash();
+
+            float looseness = _grazeMargin > 0f ? gap / _grazeMargin : 1f;
+            int points = Mathf.Max(_grazePointsMin,
+                Mathf.RoundToInt(Mathf.Lerp(_grazePointsMax, _grazePointsMin, looseness)));
+
+            int total = points;
+            if (runner != null)
+            {
+                runner.AddGrazeScore(points);
+                total = runner.Score;
+            }
+
+            Debug.Log($"[Gate1] Graze {GrazeCount}: +{points} (gap {gap:0.00}, " +
+                      $"{(looseness < 0.34f ? "close" : looseness < 0.67f ? "mid" : "loose")}); score {total}.");
         }
 
         private void RevertFlashWhenDue()

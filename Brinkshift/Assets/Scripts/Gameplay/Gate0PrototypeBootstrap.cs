@@ -12,8 +12,11 @@ namespace Brinkshift.Gameplay
     /// hazard, and runs the alive -> dead -> instant-restart state.
     ///
     /// On death the game freezes (timeScale 0); the next tap / click / key press
-    /// reloads the scene. No score, no graze, no Chain Meter, no UI - just the
-    /// retry loop for testing relative-drag control against a hazard.
+    /// reloads the scene.
+    ///
+    /// Gate 1 adds a hazard with a graze zone and direct graze scoring (closer
+    /// non-hit grazes = more points, one award per pass). No Chain Meter, no
+    /// multiplier, no production UI - just a debug IMGUI score label.
     /// </summary>
     public class Gate0PrototypeBootstrap : MonoBehaviour
     {
@@ -35,6 +38,12 @@ namespace Brinkshift.Gameplay
         [SerializeField] private Color grazeFlashColor = new Color(0.5f, 1f, 1f, 1f);
         [SerializeField, Min(0.02f)] private float grazeFlashDuration = 0.12f;
 
+        [Header("Graze scoring (direct points only - no Chain Meter)")]
+        [Tooltip("Points for a graze right against the red body (gap ~0).")]
+        [SerializeField, Min(1)] private int grazePointsMax = 10;
+        [Tooltip("Points for a graze at the loose outer edge of the graze zone.")]
+        [SerializeField, Min(1)] private int grazePointsMin = 1;
+
         [Header("References")]
         [SerializeField] private Camera targetCamera;
 
@@ -42,6 +51,15 @@ namespace Brinkshift.Gameplay
 
         /// <summary>True once the player has died this run (until the scene reloads).</summary>
         public bool IsDead => _dead;
+
+        /// <summary>Direct graze points this run. Resets to 0 when the scene reloads.</summary>
+        public int Score { get; private set; }
+
+        /// <summary>Called by <see cref="ObstacleGrazeZone"/> when a valid graze registers.</summary>
+        public void AddGrazeScore(int points)
+        {
+            Score += Mathf.Max(0, points);
+        }
 
         private void Awake()
         {
@@ -113,6 +131,17 @@ namespace Brinkshift.Gameplay
             return Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame;
         }
 
+        // Prototype-only debug readout (IMGUI, not production UI). Remove when a
+        // real HUD exists.
+        private void OnGUI()
+        {
+            GUI.Label(new Rect(12f, 10f, 400f, 24f), $"Graze score: {Score}");
+            if (_dead)
+            {
+                GUI.Label(new Rect(12f, 32f, 400f, 24f), "Dead - tap / click / key to restart");
+            }
+        }
+
         private void EnsurePlayerCollider(PlayerRelativeDragController player)
         {
             if (player == null)
@@ -182,7 +211,8 @@ namespace Brinkshift.Gameplay
                 (obstacleSize.y + 2f * grazeMargin) / obstacleSize.y);
 
             var grazeZone = grazeGo.AddComponent<ObstacleGrazeZone>();
-            grazeZone.Configure(box, sprite, grazeFlashColor, grazeFlashDuration);
+            grazeZone.Configure(box, sprite, grazeFlashColor, grazeFlashDuration,
+                grazeMargin, grazePointsMin, grazePointsMax);
 
             drifter.SetGrazeZone(grazeZone);
 
